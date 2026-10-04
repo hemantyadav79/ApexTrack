@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id          String          @id @default(uuid())
+  name        String
+  isActive    Boolean         @default(true)
+  users       User[]
+  materials   Material[]
+  products    Product[]
+  purchases   Purchase[]
+  sales       Sale[]
+  productions ProductionLog[]
+  adjustments InventoryAdjustment[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  passwordHash   String
+  isRoot         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Material {
+  id                String               @id @default(uuid())
+  name              String
+  unit              String
+  currentStock      Float                @default(0)
+  minStockThreshold Float                @default(0)
+  createdAt         DateTime             @default(now())
+  purchases         Purchase[]
+  usedIn            ProductionMaterial[]
+  boms              ProductBOM[]
+  organizationId    String
+  organization      Organization         @relation(fields: [organizationId], references: [id])
+}
+
+model Product {
+  id             String          @id @default(uuid())
+  name           String          @unique
+  currentStock   Int             @default(0)
+  createdAt      DateTime        @default(now())
+  bom            ProductBOM[]
+  sales          Sale[]
+  productions    ProductionLog[]
+  adjustments    InventoryAdjustment[]
+  organizationId String
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+}
+
+model ProductBOM {
+  id               String   @id @default(uuid())
+  productId        String
+  materialId       String
+  quantityRequired Float    
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  material         Material @relation(fields: [materialId], references: [id])
+}
+
+model Purchase {
+  id             String       @id @default(uuid())
+  materialId     String
+  quantity       Float
+  totalCost      Float
+  date           DateTime     @default(now())
+  material       Material     @relation(fields: [materialId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Sale {
+  id                String       @id @default(uuid())
+  productName       String
+  productId         String?
+  quantitySold      Int
+  totalSellingPrice Float
+  date              DateTime     @default(now())
+  product           Product?     @relation(fields: [productId], references: [id])
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id])
+}
+
+model ProductionLog {
+  id               String               @id @default(uuid())
+  productName      String
+  productId        String?
+  quantityProduced Int
+  date             DateTime             @default(now())
+  materialsUsed    ProductionMaterial[]
+  product          Product?             @relation(fields: [productId], references: [id])
+  organizationId   String
+  organization     Organization         @relation(fields: [organizationId], references: [id])
+}
+
+model ProductionMaterial {
+  id              String        @id @default(uuid())
+  productionLogId String
+  materialId      String
+  quantityUsed    Float
+  productionLog   ProductionLog @relation(fields: [productionLogId], references: [id], onDelete: Cascade)
+  material        Material      @relation(fields: [materialId], references: [id])
+}
+
+model InventoryAdjustment {
+  id             String       @id @default(uuid())
+  productId      String
+  quantity       Int
+  reason         String       // e.g. "Opening Stock", "Return", "Manual Override"
+  date           DateTime     @default(now())
+  product        Product      @relation(fields: [productId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
