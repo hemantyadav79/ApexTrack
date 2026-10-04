@@ -29,12 +29,21 @@ export default function PurchasePage() {
     },
   });
 
+  const { data: suppliers } = useQuery({
+    queryKey: ["suppliers"],
+    queryFn: async () => {
+      const res = await fetch("/api/suppliers");
+      return res.json();
+    },
+  });
+
   const form = useForm<PurchaseFormValues>({
     resolver: zodResolver(PurchaseSchema),
     defaultValues: {
       materialId: "",
       quantity: 0,
       totalCost: 0,
+      supplierId: "",
     },
   });
 
@@ -121,6 +130,36 @@ export default function PurchasePage() {
                               {materials?.map((m: any) => (
                                 <SelectItem key={m.id} value={m.id}>
                                   {m.name} ({m.currentStock} {m.unit} in stock)
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <FormField
+                      control={form.control}
+                      name="supplierId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-slate-700 flex items-center justify-between">
+                            <span>Supplier (Optional)</span>
+                          </FormLabel>
+                          <Select onValueChange={(val) => field.onChange(val === "none" ? "" : val)} value={field.value || "none"}>
+                            <FormControl>
+                              <SelectTrigger className="h-11 w-full bg-white border-slate-200">
+                                <SelectValue placeholder="Select a supplier" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">-- No specific supplier --</SelectItem>
+                              {suppliers?.map((s: any) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                  {s.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>

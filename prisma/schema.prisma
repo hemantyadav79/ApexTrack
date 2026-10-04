@@ -18,16 +18,36 @@ model Organization {
   sales       Sale[]
   productions ProductionLog[]
   adjustments InventoryAdjustment[]
+  suppliers   Supplier[]
+  customers   Customer[]
 }
 
 model User {
-  id             String       @id @default(uuid())
-  email          String       @unique
+  id             String         @id @default(uuid())
+  email          String         @unique
   passwordHash   String
-  isRoot         Boolean      @default(false)
-  createdAt      DateTime     @default(now())
+  isRoot         Boolean        @default(false)
+  createdAt      DateTime       @default(now())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  refreshTokens  RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model LoginAttempt {
+  id        String   @id @default(uuid())
+  ip        String
+  email     String
+  timestamp DateTime @default(now())
+  success   Boolean
 }
 
 model Material {
@@ -75,6 +95,8 @@ model Purchase {
   material       Material     @relation(fields: [materialId], references: [id])
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
+  supplierId     String?
+  supplier       Supplier?    @relation(fields: [supplierId], references: [id])
 }
 
 model Sale {
@@ -87,6 +109,28 @@ model Sale {
   product           Product?     @relation(fields: [productId], references: [id])
   organizationId    String
   organization      Organization @relation(fields: [organizationId], references: [id])
+  customerId        String?
+  customer          Customer?    @relation(fields: [customerId], references: [id])
+}
+
+model Supplier {
+  id             String       @id @default(uuid())
+  name           String
+  contactInfo    String?
+  createdAt      DateTime     @default(now())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  purchases      Purchase[]
+}
+
+model Customer {
+  id             String       @id @default(uuid())
+  name           String
+  contactInfo    String?
+  createdAt      DateTime     @default(now())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  sales          Sale[]
 }
 
 model ProductionLog {

@@ -10,9 +10,12 @@ export async function GET() {
     const [purchases, sales, materials, productionLogs] = await Promise.all([
       prisma.purchase.findMany({ 
         where: { organizationId: session.orgId },
-        include: { material: true } 
+        include: { material: true, supplier: true } 
       }),
-      prisma.sale.findMany({ where: { organizationId: session.orgId } }),
+      prisma.sale.findMany({ 
+        where: { organizationId: session.orgId },
+        include: { customer: true }
+      }),
       prisma.material.findMany({ where: { organizationId: session.orgId } }),
       prisma.productionLog.findMany({ where: { organizationId: session.orgId } }),
     ]);
@@ -64,19 +67,19 @@ export async function GET() {
 
     // Recent activity ledger
     const recentActivity = [
-      ...sales.map((s) => ({
+      ...sales.map((s: any) => ({
         id: s.id,
         type: "Sale" as const,
-        title: s.productName,
+        title: s.customer ? `${s.productName} (to ${s.customer.name})` : s.productName,
         date: s.date,
         quantity: s.quantitySold,
         cashFlow: s.totalSellingPrice,
         status: "Settled",
       })),
-      ...purchases.map((p) => ({
+      ...purchases.map((p: any) => ({
         id: p.id,
         type: "Purchase" as const,
-        title: p.material.name,
+        title: p.supplier ? `${p.material.name} (from ${p.supplier.name})` : p.material.name,
         date: p.date,
         quantity: p.quantity,
         cashFlow: -p.totalCost,

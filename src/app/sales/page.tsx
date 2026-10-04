@@ -29,12 +29,21 @@ export default function SalePage() {
     },
   });
 
+  const { data: customers } = useQuery({
+    queryKey: ["customers"],
+    queryFn: async () => {
+      const res = await fetch("/api/customers");
+      return res.json();
+    },
+  });
+
   const form = useForm<SaleFormValues>({
     resolver: zodResolver(SaleSchema),
     defaultValues: {
       productId: "",
       quantitySold: 1,
       totalSellingPrice: 0,
+      customerId: "",
     },
   });
 
@@ -123,6 +132,36 @@ export default function SalePage() {
                               {products?.length === 0 && (
                                 <div className="p-2 text-sm text-slate-500">No products available.</div>
                               )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <FormField
+                      control={form.control}
+                      name="customerId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-slate-700 flex items-center justify-between">
+                            <span>Customer (Optional)</span>
+                          </FormLabel>
+                          <Select onValueChange={(val) => field.onChange(val === "none" ? "" : val)} value={field.value || "none"}>
+                            <FormControl>
+                              <SelectTrigger className="h-11 w-full bg-white border-slate-200">
+                                <SelectValue placeholder="Select a customer" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">-- No specific customer --</SelectItem>
+                              {customers?.map((c: any) => (
+                                <SelectItem key={c.id} value={c.id}>
+                                  {c.name}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />

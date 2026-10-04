@@ -4,11 +4,11 @@ import { cookies } from "next/headers";
 const secretKey = process.env.JWT_SECRET || "default_secret_key";
 const key = new TextEncoder().encode(secretKey);
 
-export async function encrypt(payload: any) {
+export async function encrypt(payload: any, expiresIn: string = "24h") {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("24h")
+    .setExpirationTime(expiresIn)
     .sign(key);
 }
 

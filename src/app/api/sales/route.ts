@@ -29,7 +29,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
     }
     
-    const { productId, quantitySold, totalSellingPrice } = parsed.data;
+    const { productId, quantitySold, totalSellingPrice, customerId } = parsed.data;
+
+    if (customerId) {
+      const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+      if (!customer || customer.organizationId !== session.orgId) {
+        return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+      }
+    }
     
     // Check stock
     const product = await prisma.product.findUnique({ where: { id: productId } });
@@ -51,6 +58,7 @@ export async function POST(request: Request) {
           productName: product.name, // keep for historical record
           quantitySold,
           totalSellingPrice,
+          customerId: customerId || null,
           organizationId: session.orgId
         },
       });

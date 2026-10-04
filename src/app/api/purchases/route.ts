@@ -29,12 +29,25 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
     }
-    const { materialId, quantity, totalCost } = parsed.data;
+    const { materialId, quantity, totalCost, supplierId } = parsed.data;
+
+    if (supplierId) {
+      const supplier = await prisma.supplier.findUnique({ where: { id: supplierId } });
+      if (!supplier || supplier.organizationId !== session.orgId) {
+        return NextResponse.json({ error: "Supplier not found" }, { status: 404 });
+      }
+    }
 
     // Use a transaction to create the purchase and update the material stock atomically
     const result = await prisma.$transaction(async (tx) => {
       const purchase = await tx.purchase.create({
-        data: { materialId, quantity, totalCost, organizationId: session.orgId },
+        data: { 
+          materialId, 
+          quantity, 
+          totalCost, 
+          supplierId: supplierId || null,
+          organizationId: session.orgId 
+        },
       });
       await tx.material.update({
         where: { id: materialId },

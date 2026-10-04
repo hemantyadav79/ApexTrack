@@ -10,8 +10,10 @@ export function Navbar() {
   const navLinks = [
     { name: "Materials", href: "/materials" },
     { name: "Products & BOM", href: "/products" },
+    { name: "Suppliers", href: "/suppliers" },
     { name: "Purchases", href: "/purchases" },
     { name: "Production", href: "/production" },
+    { name: "Customers", href: "/customers" },
     { name: "Sales", href: "/sales" },
   ];
 

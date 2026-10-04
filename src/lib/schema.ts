@@ -17,12 +17,14 @@ export const PurchaseSchema = z.object({
   materialId: z.string().min(1, "Material is required"),
   quantity: z.number().positive("Quantity must be positive"),
   totalCost: z.number().min(0, "Total cost cannot be negative"),
+  supplierId: z.string().optional().nullable(),
 });
 
 export const SaleSchema = z.object({
   productId: z.string().min(1, "Product is required"),
   quantitySold: z.number().int().positive("Quantity must be a positive integer"),
   totalSellingPrice: z.number().min(0, "Selling price cannot be negative"),
+  customerId: z.string().optional().nullable(),
 });
 
 export const ProductBOMSchema = z.object({
@@ -38,4 +40,14 @@ export const ProductSchema = z.object({
 export const ProductionSchema = z.object({
   productId: z.string().min(1, "Product is required"),
   quantityProduced: z.number().int().positive("Quantity produced must be positive"),
+});
+
+export const SupplierSchema = z.object({
+  name: z.string().min(1, "Supplier name is required"),
+  contactInfo: z.string().optional(),
+});
+
+export const CustomerSchema = z.object({
+  name: z.string().min(1, "Customer name is required"),
+  contactInfo: z.string().optional(),
 });
